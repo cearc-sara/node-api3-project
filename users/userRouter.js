@@ -1,5 +1,5 @@
 const express = require('express');
-
+const Posts = require("../posts/postDb")
 const Users = require("./userDb")
 const router = express.Router();
 
@@ -14,7 +14,13 @@ router.post('/', validateUser, (req, res) => {
 });
 
 router.post('/:id/posts', validatePost, validateUserId, (req, res) => {
-  // do your magic!
+  Posts.insert(req.body)
+  .then(resp => {
+    res.status(201).json(resp)
+  })
+  .catch(err=>{
+    res.status(500).json({ error: "could not post" })
+  })
 });
 
 router.get('/', (req, res) => {
@@ -42,14 +48,20 @@ router.get('/:id', validateUserId, (req, res) => {
 });
 
 router.get('/:id/posts', validatePost, validateUserId, (req, res) => {
-
+  Users.getUserPosts(req.params.id)
+  .then(resp => {
+    res.status(200).json(resp)
+  })
+  .catch(err => {
+    res.status(500).json({ error: "user post does not exist"})
+  })
 });
 
 router.delete('/:id', validateUserId, (req, res) => {
   Users.remove(req.params.id)
   .then(count => {
     if(count > 0){
-      res.status(200).json({ message: count })
+      res.status(200).json({ data: count })
     }else{
       res.status(404).json({ message: "the user could not be found" })
     }
